@@ -141,7 +141,7 @@ export default {
         select(place) {
             geocode({ placeId: place.place_id }).then(response => {
                 //this.hide();
-                this.$emit('input', this.query = response[0].formatted_address);
+                this.$emit('input', this.query = place.description);
                 this.$emit('autocomplete-select', place, response[0]);
             });
         },
