@@ -1,6 +1,7 @@
 <template>
     <div class="autocomplete-field" @keydown="onKeydown" @keyup="onKeyup">
         <input
+            ref="autocompleteField"
             v-model="query"
             v-bind-events
             v-bind="$attrs"
@@ -8,6 +9,7 @@
             :errors="errors"
             :value="value"
             :custom="custom"
+            :placeholder="placeholder"
             autocomplete="no"
             @blur="onBlur"
             @focus="onFocus"
@@ -113,6 +115,16 @@ export default {
         types: {
             type: [Boolean, Array],
             default: false
+        },
+
+        placeholder: {
+            type: String,
+            default: ""
+        },
+
+        additionalParams: {
+            type: Object,
+            default: null
         }
 
     },
@@ -249,12 +261,14 @@ export default {
 
                 this.show();
             }
+            this.$refs.autocompleteField.placeholder = "";
         },
 
         onBlur(event) {
             if (!this.$el.contains(event.relatedTarget)) {
                 this.hide();
             }
+            this.$refs.autocompleteField.placeholder = this.placeholder;
         },
 
         onItemBlur(event) {
@@ -270,7 +284,14 @@ export default {
 
     mounted() {
         if(this.apiKey) {
-            script(`${this.baseUri}?key=${this.apiKey}&libraries=${this.libraries.join(',')}`).then(() => {
+            let params = "";
+            if(this.additionalParams) {
+                Object.keys(this.additionalParams).forEach((key) => {
+                    params += `&${key}=${this.additionalParams[key]}`;
+                });
+            }
+
+            script(`${this.baseUri}?key=${this.apiKey}&libraries=${this.libraries.join(',')}${params}`).then(() => {
                 this.$geocoder = new window.google.maps.Geocoder();
                 this.$service = new window.google.maps.places.AutocompleteService();
                 this.loaded = true;
