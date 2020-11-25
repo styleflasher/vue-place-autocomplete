@@ -1,6 +1,7 @@
 <template>
     <div class="autocomplete-field" @keydown="onKeydown" @keyup="onKeyup">
-        <input-field
+        <input
+            ref="autocompleteField"
             v-model="query"
             v-bind-events
             v-bind="$attrs"
@@ -8,12 +9,12 @@
             :errors="errors"
             :value="value"
             :custom="custom"
+            :placeholder="placeholder"
             autocomplete="no"
             @blur="onBlur"
             @focus="onFocus"
-            @input="$emit('input', query)">
-            <activity-indicator v-if="showActivityIndicator" size="xs" type="spinner"/>
-        </input-field>
+            @input="$emit('input', query)" />
+        <activity-indicator v-if="showActivityIndicator" size="xs" type="spinner"/>
         <place-autocomplete-list v-if="predictions && showPredictions" :items="predictions" @item:click="onItemClick" @item:blur="onItemBlur"/>
     </div>
 </template>
@@ -42,7 +43,7 @@ const KEYCODE = {
 const API_REQUEST_OPTIONS = [
     'bounds',
     'location',
-    'component-restrictions',
+    'componentRestrictions',
     'offset',
     'radius',
     'types'
@@ -117,6 +118,16 @@ export default {
             default: false
         },
 
+        placeholder: {
+            type: String,
+            default: ""
+        },
+
+        additionalParams: {
+            type: Object,
+            default: null
+        }
+
     },
 
     methods: {
@@ -142,7 +153,7 @@ export default {
         select(place) {
             geocode({ placeId: place.place_id }).then(response => {
                 //this.hide();
-                this.$emit('input', this.query = response[0].formatted_address);
+                this.$emit('input', this.query = place.description);
                 this.$emit('autocomplete-select', place, response[0]);
             });
         },
@@ -255,12 +266,14 @@ export default {
 
                 this.show();
             }
+            this.$refs.autocompleteField.placeholder = "";
         },
 
         onBlur(event) {
             if (!this.$el.contains(event.relatedTarget)) {
                 this.hide();
             }
+            this.$refs.autocompleteField.placeholder = this.placeholder;
         },
 
         onItemBlur(event) {
@@ -276,7 +289,14 @@ export default {
 
     mounted() {
         if(this.apiKey) {
-            script(`${this.baseUri}?key=${this.apiKey}&libraries=${this.libraries.join(',')}`).then(() => {
+            let params = "";
+            if(this.additionalParams) {
+                Object.keys(this.additionalParams).forEach((key) => {
+                    params += `&${key}=${this.additionalParams[key]}`;
+                });
+            }
+
+            script(`${this.baseUri}?key=${this.apiKey}&libraries=${this.libraries.join(',')}${params}`).then(() => {
                 this.$geocoder = new window.google.maps.Geocoder();
                 this.$service = new window.google.maps.places.AutocompleteService();
                 this.loaded = true;
