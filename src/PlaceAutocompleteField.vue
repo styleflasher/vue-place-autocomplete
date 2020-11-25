@@ -1,6 +1,7 @@
 <template>
     <div class="autocomplete-field" @keydown="onKeydown" @keyup="onKeyup">
-        <input-field
+        <input
+            ref="autocompleteField"
             v-model="query"
             v-bind-events
             v-bind="$attrs"
@@ -8,6 +9,7 @@
             :errors="errors"
             :value="value"
             :custom="custom"
+            :placeholder="placeholder"
             autocomplete="no"
             @blur="onBlur"
             @focus="onFocus"
@@ -114,7 +116,12 @@ export default {
         types: {
             type: [Boolean, Array],
             default: false
-        }
+        },
+
+        placeholder: {
+            type: String,
+            default: ""
+        },
 
     },
 
@@ -250,12 +257,14 @@ export default {
 
                 this.show();
             }
+            this.$refs.autocompleteField.placeholder = "";
         },
 
         onBlur(event) {
             if (!this.$el.contains(event.relatedTarget)) {
                 this.hide();
             }
+            this.$refs.autocompleteField.placeholder = this.placeholder;
         },
 
         onItemBlur(event) {
