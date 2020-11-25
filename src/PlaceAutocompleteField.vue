@@ -42,7 +42,7 @@ const KEYCODE = {
 const API_REQUEST_OPTIONS = [
     'bounds',
     'location',
-    'component-restrictions',
+    'componentRestrictions',
     'offset',
     'radius',
     'types'
