@@ -116,6 +116,11 @@ export default {
             default: false
         }
 
+        additionalParams: {
+            type: Object,
+            default: null
+        }
+
     },
 
     methods: {
@@ -271,7 +276,14 @@ export default {
 
     mounted() {
         if(this.apiKey) {
-            script(`${this.baseUri}?key=${this.apiKey}&libraries=${this.libraries.join(',')}`).then(() => {
+            let params = "";
+            if(this.additionalParams) {
+                Object.keys(this.additionalParams).forEach((key) => {
+                    params += `&${key}=${this.additionalParams[key]}`;
+                });
+            }
+
+            script(`${this.baseUri}?key=${this.apiKey}&libraries=${this.libraries.join(',')}${params}`).then(() => {
                 this.$geocoder = new window.google.maps.Geocoder();
                 this.$service = new window.google.maps.places.AutocompleteService();
                 this.loaded = true;
